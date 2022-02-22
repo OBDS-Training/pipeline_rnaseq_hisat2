@@ -1,0 +1,4 @@
+sample_id	fastq1	fastq2
+sample_01	data/sample_01_1.fastq.gz	data/sample_01_2.fastq.gz
+sample_02	data/sample_02_part1_1.fastq.gz	data/sample_02_part1_2.fastq.gz
+sample_02	data/sample_02_part2_1.fastq.gz	data/sample_02_part2_2.fastq.gz

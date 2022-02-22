@@ -1,0 +1,132 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    
+    # The build matrix that runs the job in a variation of job configurations
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9']
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v2.1.1
+        with:
+          activate-environment: pipeline_rnaseq_hisat2
+          environment-file: envs/ci.yml
+          python-version: ${{ matrix.python-version }}
+          mamba-version: "*"
+          condarc-file: etc/condarc.yml
+          auto-activate-base: false
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        shell: bash -l {0}
+
+      - name: Conda information
+        run: mamba info
+        shell: bash -l {0}
+
+      - name: Conda packages
+        run: mamba list
+        shell: bash -l {0}
+        
+      - name: Pip information
+        run: which pip
+        shell: bash -l {0}
+      
+      - name: Download input files
+        run: |
+          wget \
+            http://ftp.ensembl.org/pub/release-104/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/chr22.genes2.gtf \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.1.ht2 \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.2.ht2 \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.3.ht2 \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.4.ht2 \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.5.ht2 \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.6.ht2 \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.7.ht2 \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.8.ht2 \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_01_1.fastq \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_01_2.fastq \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_02_part1_1.fastq \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_02_part1_2.fastq \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_02_part2_1.fastq \
+            https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_02_part2_2.fastq \
+            -P data \
+            --no-verbose
+          ls data
+        shell: bash -l {0}
+      
+      - name: Compress some input files
+        run: |
+          gzip \
+            data/sample_01_1.fastq \
+            data/sample_01_2.fastq \
+            data/sample_02_part1_1.fastq \
+            data/sample_02_part1_2.fastq \
+            data/sample_02_part2_1.fastq \
+            data/sample_02_part2_2.fastq \
+            data/chr22.genes2.gtf
+          ls data
+        shell: bash -l {0}
+      
+      - name: Decompress some input files
+        run: |
+          gzip -d \
+            data/Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz
+          ls data
+        shell: bash -l {0}
+
+      - name: Show pipeline
+        run: python pipeline.py show full -v 5 --local
+        shell: bash -l {0}
+      
+      # Resources available for GitHub-hosted runners:
+      # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
+
+      - name: Run pipeline
+        run: python pipeline.py make full -v 5 --local
+        shell: bash -l {0}
+
+      - name: List pipeline outputs
+        run: ls -lhR results
+        shell: bash -l {0}
+
+      - name: Check pipeline outputs
+        run: bash etc/ci_checks.sh
+        shell: bash -l {0}
+
+      - name: Archive production artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: results-${{ matrix.python-version }}
+          path: |
+            results

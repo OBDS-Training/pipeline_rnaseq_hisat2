@@ -1,0 +1,17 @@
+name: pipeline_rnaseq_hisat2
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - cgatcore
+  - fastqc
+  - multiqc
+  - hisat2
+  - samtools
+  - picard
+  - subread
+  - pip
+  - pip:
+      - drmaa
+      - flake8

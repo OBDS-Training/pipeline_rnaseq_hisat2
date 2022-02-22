@@ -1,0 +1,19 @@
+# pipeline
+results/
+*.log
+*.gtf.gz
+*.ht2
+*.fa
+*.fastq.gz
+*.pyc
+# cgatcore
+ctmp*.sh
+# Visual Studio Code
+.vscode/settings.json
+# miscellaneous
+nohup.out
+sps-*.tar.gz
+sps-*-cpu.tsv
+sps-*-mem.tsv
+sps-*-read.tsv
+sps-*-write.tsv
