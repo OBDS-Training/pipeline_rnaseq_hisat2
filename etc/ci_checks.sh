@@ -1,12 +1,16 @@
 expected_files=(
-    results/qc/fastqc/sample_01_1_fastqc.html
-    results/qc/fastqc/sample_01_2_fastqc.html
-    results/qc/fastqc/sample_01_1_fastqc.html
-    results/qc/fastqc/sample_01_2_fastqc.html
-    results/qc/fastqc/sample_02_part1_1_fastqc.zip
-    results/qc/fastqc/sample_02_part1_2_fastqc.zip
-    results/qc/fastqc/sample_02_part2_1_fastqc.zip
-    results/qc/fastqc/sample_02_part2_2_fastqc.zip
+    results/qc/fastqc/sample_01-all-1_fastqc.html
+    results/qc/fastqc/sample_01-all-2_fastqc.html
+    results/qc/fastqc/sample_02-part1-1_fastqc.html
+    results/qc/fastqc/sample_02-part1-2_fastqc.html
+    results/qc/fastqc/sample_02-part2-1_fastqc.html
+    results/qc/fastqc/sample_02-part2-2_fastqc.html
+    results/qc/fastqc/sample_01-all-1_fastqc.zip
+    results/qc/fastqc/sample_01-all-2_fastqc.zip
+    results/qc/fastqc/sample_02-part1-1_fastqc.zip
+    results/qc/fastqc/sample_02-part1-2_fastqc.zip
+    results/qc/fastqc/sample_02-part2-1_fastqc.zip
+    results/qc/fastqc/sample_02-part2-2_fastqc.zip
     results/reports/multiqc/fastq.html
     results/reports/multiqc/fastq_data/multiqc_general_stats.txt
     results/reports/multiqc/fastq_data/multiqc_sources.txt
