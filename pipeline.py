@@ -64,6 +64,7 @@ Code
 from ruffus import *
 import sys
 import os
+import re
 import pandas as pd
 import cgatcore.experiment as E
 from cgatcore import pipeline as P
@@ -84,9 +85,34 @@ PARAMS = P.get_parameters(
 ############
 
 
+@follows(mkdir("data/fastq"))
+@subdivide(
+    "config/fastq_links.tsv",
+    formatter(),
+    # Output parameter: Glob matches any number of output file names
+    "data/fastq/*.fastq.gz"
+)
+def symlink_fastq(input_file, output_files):
+    # the arguments 'input_file' and 'output_files' are not used here
+    # input and output files are generated from 'config/fastq_files.tsv'
+
+    hisat2_threads = PARAMS["hisat2"]["threads"]
+    hisat2_genome = PARAMS["hisat2"]["genome"]
+    hisat2_options = PARAMS["hisat2"]["options"]
+
+    fastq_links = pd.read_csv(input_file, sep="\t", names=["source", "link"])
+    for i in fastq_links.index:
+        source_file = os.path.abspath(fastq_links["source"][int(i)])
+        print(source_file)
+        destination_dir = os.path.dirname(os.path.realpath(__file__))
+        destination_link = os.path.join(destination_dir, "data", "fastq", fastq_links["link"][int(i)])
+        print(destination_link)
+        os.symlink(source_file, destination_link)
+
+
 @follows(mkdir("results/qc/fastqc"))
 @transform(
-    "data/*.fastq.gz", regex(r".*/(.*).fastq.gz"), r"results/qc/fastqc/\1_fastqc.html"
+    symlink_fastq, regex(r"data/fastq/(.*).fastq.gz"), r"results/qc/fastqc/\1_fastqc.html"
 )
 def fastqc_on_fastq(infile, outfile):
     """
@@ -125,14 +151,12 @@ def multiqc_fastq(infiles, outfile):
 
 
 @follows(mkdir("results/hisat2"))
-@subdivide(
-    "config/fastq_files.tsv",
-    formatter(),
-    # Output parameter: Glob matches any number of output file names
-    "results/hisat2/*.bam",
-    "results/hisat2",
+@collate(
+    symlink_fastq,
+    regex(r"data/fastq/(.+)-.+-[12].fastq.gz"),
+    r"results/hisat2/\1.bam"
 )
-def hisat2_on_fastq(input_file, output_files, output_file_name_root):
+def hisat2_on_fastq(input_files, output_file):
     # the arguments 'input_file' and 'output_files' are not used here
     # input and output files are generated from 'config/fastq_files.tsv'
 
@@ -140,53 +164,30 @@ def hisat2_on_fastq(input_file, output_files, output_file_name_root):
     hisat2_genome = PARAMS["hisat2"]["genome"]
     hisat2_options = PARAMS["hisat2"]["options"]
 
-    config_files = pd.read_csv("config/fastq_files.tsv", sep="\t")
-    # prepare a dictionary
-    # key: sample_id
-    # value: comma-separated list of fastq files
-    # (first, for read1)
-    fastq1_list = config_files["fastq1"].groupby(
-        config_files["sample_id"]
-    ).aggregate(
-        lambda x: ",".join(x)
-    ).to_dict()
-    # (same as above, for read2)
-    fastq2_list = config_files["fastq2"].groupby(
-        config_files["sample_id"]
-    ).aggregate(
-        lambda x: ",".join(x)
-    ).to_dict()
+    fastqs1 = [file for file in input_files if bool(re.search("-1.fastq.gz", file))]
+    fastqs2 = [file for file in input_files if bool(re.search("-2.fastq.gz", file))]
 
-    sample_ids = config_files["sample_id"].unique().tolist()
+    fastqs1 = ",".join(fastqs1)
+    fastqs2 = ",".join(fastqs2)
 
-    # prepare the list of statements to submit as jobs
-    # (one per sample)
-    statements = []
-    for sample_id in sample_ids:
-        output_file_name = "{output_file_name_root}/{sample_id}.bam".format(**locals())
-        fastqs1 = fastq1_list[sample_id]
-        fastqs2 = fastq2_list[sample_id]
-
-        statements.append(
-        """
-            hisat2
-                --threads %(hisat2_threads)s
-                -x %(hisat2_genome)s
-                -1 %(fastqs1)s
-                -2 %(fastqs2)s
-                %(hisat2_options)s
-                --summary-file %(output_file_name)s.log
-            | samtools sort
-                -@ %(hisat2_threads)s
-                -o %(output_file_name)s
-                -
-            && samtools index
-                %(output_file_name)s
+    statement = """
+        hisat2
+            --threads %(hisat2_threads)s
+            -x %(hisat2_genome)s
+            -1 %(fastqs1)s
+            -2 %(fastqs2)s
+            %(hisat2_options)s
+            --summary-file %(output_file)s.log
+        | samtools sort
+            -@ %(hisat2_threads)s
+            -o %(output_file)s
+            -
+        && samtools index
+            %(output_file)s
         """ % locals()
-    )
 
     P.run(
-        statements,
+        statement,
         job_condaenv="pipeline_rnaseq_hisat2",
         job_threads=PARAMS["hisat2_threads"],
         job_memory=PARAMS["hisat2_memory_per_thread"]

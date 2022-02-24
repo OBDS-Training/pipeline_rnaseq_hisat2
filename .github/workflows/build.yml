@@ -79,29 +79,29 @@ jobs:
             https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_02_part1_2.fastq \
             https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_02_part2_1.fastq \
             https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_02_part2_2.fastq \
-            -P data \
+            -P downloads \
             --no-verbose
-          ls data
+          ls downloads
         shell: bash -l {0}
       
       - name: Compress some input files
         run: |
           gzip \
-            data/sample_01_1.fastq \
-            data/sample_01_2.fastq \
-            data/sample_02_part1_1.fastq \
-            data/sample_02_part1_2.fastq \
-            data/sample_02_part2_1.fastq \
-            data/sample_02_part2_2.fastq \
-            data/chr22.genes2.gtf
-          ls data
+            downloads/sample_01_1.fastq \
+            downloads/sample_01_2.fastq \
+            downloads/sample_02_part1_1.fastq \
+            downloads/sample_02_part1_2.fastq \
+            downloads/sample_02_part2_1.fastq \
+            downloads/sample_02_part2_2.fastq \
+            downloads/chr22.genes2.gtf
+          ls downloads
         shell: bash -l {0}
       
       - name: Decompress some input files
         run: |
           gzip -d \
-            data/Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz
-          ls data
+            downloads/Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz
+          ls downloads
         shell: bash -l {0}
 
       - name: Show pipeline

@@ -3,13 +3,13 @@
 hisat2:
     threads: 2
     memory_per_thread: 2G
-    genome: data/hisat2_chr22
+    genome: downloads/hisat2_chr22
     options: --rna-strandness RF
 
 picard:
-    genome: data/Homo_sapiens.GRCh38.dna.chromosome.22.fa
+    genome: downloads/Homo_sapiens.GRCh38.dna.chromosome.22.fa
 
 feature_counts:
-    gtf: data/chr22.genes2.gtf.gz
+    gtf: downloads/chr22.genes2.gtf.gz
     options: -p -s 2
     threads: 2
