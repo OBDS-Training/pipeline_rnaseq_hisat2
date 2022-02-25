@@ -96,17 +96,11 @@ def symlink_fastq(input_file, output_files):
     # the arguments 'input_file' and 'output_files' are not used here
     # input and output files are generated from 'config/fastq_files.tsv'
 
-    hisat2_threads = PARAMS["hisat2"]["threads"]
-    hisat2_genome = PARAMS["hisat2"]["genome"]
-    hisat2_options = PARAMS["hisat2"]["options"]
-
     fastq_links = pd.read_csv(input_file, sep="\t", names=["source", "link"])
     for i in fastq_links.index:
         source_file = os.path.abspath(fastq_links["source"][int(i)])
-        print(source_file)
         destination_dir = os.path.dirname(os.path.realpath(__file__))
         destination_link = os.path.join(destination_dir, "data", "fastq", fastq_links["link"][int(i)])
-        print(destination_link)
         os.symlink(source_file, destination_link)
 
 
