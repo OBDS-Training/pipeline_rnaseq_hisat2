@@ -58,7 +58,7 @@ wget \
 Create the Conda environment expected by the pipeline, using the `conda.yml`.
 
 ```
-conda create -f conda.yml
+mamba env create -f conda.yml
 ```
 
 Activate the Conda environment.
