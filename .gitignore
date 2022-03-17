@@ -1,13 +1,18 @@
 # pipeline
 results/
 *.log
+*.gtf
 *.gtf.gz
 *.ht2
 *.fa
+*.fa.gz
+*.fastq
 *.fastq.gz
 *.pyc
 # cgatcore
 ctmp*.sh
+ctmp*.stderr
+ctmp*.stdout
 # Visual Studio Code
 .vscode/settings.json
 # miscellaneous

@@ -6,32 +6,71 @@ A minimal pipeline demonstrating the processing paired-end RNA-sequencing using 
 
 ## Usage
 
-1. Create a new repository from this one, using the `Use as template` button on [GitHub](https://github.com/OBDS-Training/pipeline_rnaseq_hisat2).
-    + That way, your new repository starts its own commit history, where you can record your own changes!
-    + Only fork this repository if you wish to contribute updates to the template pipeline itself.
-2. Clone the new repository to the computer where you wish to run the pipeline.
-    + A clone is a working directory for one run of the pipeline on one set of FASTQ files.
-    + To run the pipeline on another set of FASTQ file, go back to step 1, and create another
-      repository (with a different name) from the template.
-3. Create a Conda environment named `pipeline_rnaseq_hisat2` using the file `envs/pipeline.yml`. 
-    + You only need to do this once, no matter how many times you run the pipeline and how many
-      copies of the pipeline you have cloned.
-    + A Conda environment can be shared by any number of pipelines.
-    + In doubt - if there is a chance that the environment was altered - remove the existing
-      environment and create it again from this file.
-4. Edit the set of input files in `config/fastq_links.tsv`:
-    + In the first column, declare the location of input files (preferably as absolute paths,
-      or relative to the working directory of the clone).
-    + In the second column, declare a unique name that will be used to create a symbolic link
-      to the corresponding input file.
-    + Input files should be stored outside the working directory of the clone.
-    + Symbolic links will be automatically created in a sub-directory `data/fastq`,
-      in the working directory of the clone.
-5. Edit the configuration of the pipeline as needed, in the file `config/pipeline.yml`.
-    + Commit your changes to the configuration for version control and traceability.
-6. Run the pipeline!
-    + On a High-Performance Computing (HPC) cluster, `python pipeline.py make full -v 5`, to use the Distributed Resource Management Application API (DRMAA).
-    + On a local machine `python pipeline.py make full -v 5 --local`.
+### Setup - Files
+
+Clone this repository.
+
+```
+git clone git@github.com:OBDS-Training/pipeline_rnaseq_hisat2.git
+```
+
+Create sub-directories for the input files.
+
+```
+mkdir data
+mkdir data/fastq
+mkdir data/hisat2_index
+```
+
+Download an example set of compressed FASTQ files.
+
+```
+wget \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_01_R1.fastq.gz \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_01_R2.fastq.gz \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_02_R1.fastq.gz \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/simulated_reads/sample_02_R2.fastq.gz \
+  -P data/fastq \
+  --no-verbose
+```
+
+Download an example genome FASTA file and decompress it.
+
+```
+wget \
+  http://ftp.ensembl.org/pub/release-104/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz \
+  -P data \
+  --no-verbose
+gzip -d data/Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz
+```
+
+Download an example GTF file.
+
+```
+wget \
+  https://raw.githubusercontent.com/sims-lab/simulated_ngs_datasets/files/human.chr22.genes2/outputs/chr22.genes2.gtf \
+  -P data \
+  --no-verbose
+```
+
+### Setup - Environment
+
+Create the Conda environment expected by the pipeline, using the `conda.yml`.
+
+```
+conda create -f conda.yml
+```
+
+## Execution
+
+Launch the pipeline.
+
+```
+python pipeline.py make full -v 5
+```
+
+The example above request the execution of entire pipeline (`make full`),
+with maximal verbosity (`-v 5`).
 
 [link-cgatcore]: https://github.com/cgat-developers/cgat-core
 [link-hisat2]: http://www.ccb.jhu.edu/software/hisat/index.shtml
