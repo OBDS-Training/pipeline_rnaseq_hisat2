@@ -22,7 +22,7 @@ mkdir data/fastq
 mkdir data/hisat2_index
 ```
 
-Download an example set of compressed FASTQ files.
+Download an example set of compressed FASTQ files into the `data/fastq/` directory.
 
 ```
 wget \
@@ -34,7 +34,7 @@ wget \
   --no-verbose
 ```
 
-Download an example genome FASTA file and decompress it.
+Download an example genome FASTA file into the `data/` directory, and decompress it.
 
 ```
 wget \
@@ -44,7 +44,7 @@ wget \
 gzip -d data/Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz
 ```
 
-Download an example GTF file.
+Download an example GTF file into the `data/` directory.
 
 ```
 wget \
@@ -59,6 +59,12 @@ Create the Conda environment expected by the pipeline, using the `conda.yml`.
 
 ```
 conda create -f conda.yml
+```
+
+Activate the Conda environment.
+
+```
+conda activate pipeline_rnaseq_hisat2
 ```
 
 ## Execution
