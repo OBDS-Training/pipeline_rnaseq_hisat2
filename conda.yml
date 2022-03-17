@@ -11,6 +11,4 @@ dependencies:
   - samtools
   - picard
   - subread
-  - pip
-  - pip:
-      - drmaa
+  - drmaa
