@@ -42,6 +42,22 @@ wget \
 gunzip data/Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz
 ```
 
+Download a precomputed HISAT2 index for the example genome FASTA above.
+
+```
+wget \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.1.ht2 \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.2.ht2 \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.3.ht2 \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.4.ht2 \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.5.ht2 \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.6.ht2 \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.7.ht2 \
+  https://github.com/sims-lab/simulated_ngs_datasets/raw/files/human.chr22.genes2/outputs/hisat2_chr22.8.ht2 \
+  -P data/hisat2_index \
+  --no-verbose
+```
+
 Download an example GTF file into the `data/` directory.
 
 ```

@@ -5,7 +5,6 @@
 from ruffus import collate, follows, merge, mkdir, regex, transform
 import sys
 import os
-import re
 from cgatcore import pipeline as P
 
 
@@ -72,7 +71,7 @@ def run_multiqc_for_fastq(input_files, output_file):
 
 @follows(mkdir("results/hisat2"))
 @collate(
-    "data/fastq/*.fastq.gz",
+    "data/fastq/*_R[12].fastq.gz",
     regex(r"data/fastq/(.+)_R[12].fastq.gz"),
     r"results/hisat2/\1.bam"
 )
