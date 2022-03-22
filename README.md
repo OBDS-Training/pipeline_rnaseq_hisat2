@@ -65,7 +65,7 @@ Activate the Conda environment.
 conda activate pipeline_rnaseq_hisat2
 ```
 
-## Execution
+### Execution
 
 Launch the pipeline.
 
