@@ -37,7 +37,7 @@ def run_fastqc_on_fastq(infile, outfile):
     """
 
     statement = """
-        fastqc 
+        fastqc
             -o results/qc/fastqc
             --nogroup
             %(infile)s
@@ -59,7 +59,7 @@ def run_multiqc_for_fastq(infiles, outfile):
     """
 
     statement = """
-        multiqc 
+        multiqc
             -n fastq.html
             -o results/reports/multiqc
             results/qc/fastqc
@@ -84,18 +84,15 @@ def run_hisat2_on_fastq(input_files, output_file):
     hisat2_genome = PARAMS["hisat2"]["genome"]
     hisat2_options = PARAMS["hisat2"]["options"]
 
-    fastqs1 = [file for file in input_files if bool(re.search("_R1.fastq.gz", file))]
-    fastqs2 = [file for file in input_files if bool(re.search("_R2.fastq.gz", file))]
-
-    fastqs1 = ",".join(fastqs1)
-    fastqs2 = ",".join(fastqs2)
+    fastq1 = input_files[0]
+    fastq2 = input_files[1]
 
     statement = """
         hisat2
             --threads %(hisat2_threads)s
             -x %(hisat2_genome)s
-            -1 %(fastqs1)s
-            -2 %(fastqs2)s
+            -1 %(fastq1)s
+            -2 %(fastq2)s
             %(hisat2_options)s
             --summary-file %(output_file)s.log
         | samtools sort
