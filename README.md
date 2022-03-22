@@ -1,6 +1,4 @@
-[![CI](https://github.com/OBDS-Training/pipeline_rnaseq_hisat2/actions/workflows/build.yml/badge.svg)](https://github.com/OBDS-Training/pipeline_rnaseq_hisat2/actions/workflows/build.yml)
-
-# pipeline_rnaseq_hisat2
+# OBDS-Training / pipeline_rnaseq_hisat2
 
 A minimal pipeline demonstrating the processing paired-end RNA-sequencing using [cgatcore][link-cgatcore] and [HISAT2][link-hisat2].
 
