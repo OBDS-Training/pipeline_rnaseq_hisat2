@@ -5,15 +5,15 @@
 from ruffus import collate, follows, merge, mkdir, regex, transform
 import sys
 import os
-import re
 from cgatcore import pipeline as P
+
 
 #################
 # Configuration #
 #################
 
 
-# Load parameters from config file, located in `./config/pipeline.yml`.
+# Load parameters from the configuration file 'pipeline.yml'
 PARAMS = P.get_parameters(
     "%s/pipeline.yml" % os.path.dirname(os.path.realpath(__file__))
 )
@@ -30,68 +30,67 @@ PARAMS = P.get_parameters(
     regex(r"data/fastq/(.*).fastq.gz"),
     r"results/qc/fastqc/\1_fastqc.html"
 )
-def run_fastqc_on_fastq(infile, outfile):
+def run_fastqc_on_fastq(input_file, output_file):
     """
     Run `fastqc` on the FASTQ files.
     """
-
+    # Prepare a command from the input and output file names.
     statement = """
-        fastqc 
+        fastqc
             -o results/qc/fastqc
             --nogroup
-            %(infile)s
-            > %(outfile)s.log
+            %(input_file)s
+            > %(output_file)s.log
             2>&1
     """
-
+    # Run the command in the Conda environment.
     P.run(statement, job_condaenv="pipeline_rnaseq_hisat2")
 
 
 @follows(mkdir("results/reports/multiqc"))
-@merge(run_fastqc_on_fastq, "results/reports/multiqc/fastq.html")
-def run_multiqc_for_fastq(infiles, outfile):
+@merge(
+    run_fastqc_on_fastq,
+    "results/reports/multiqc/fastq.html"
+)
+def run_multiqc_for_fastq(input_files, output_file):
     """
     Run `multiqc` on the files of quality metrics computed for the FASTQ files.
     """
-
+    # Prepare a command from the input folder and output file names.
     statement = """
-        multiqc 
+        multiqc
             -n fastq.html
             -o results/reports/multiqc
             results/qc/fastqc
-            > %(outfile)s.log
+            > %(output_file)s.log
             2>&1
     """
-
+    # Run the command in the Conda environment.
     P.run(statement, job_condaenv="pipeline_rnaseq_hisat2")
 
 
 @follows(mkdir("results/hisat2"))
 @collate(
-    "data/fastq/*.fastq.gz",
+    "data/fastq/*_R[12].fastq.gz",
     regex(r"data/fastq/(.+)_R[12].fastq.gz"),
     r"results/hisat2/\1.bam"
 )
 def run_hisat2_on_fastq(input_files, output_file):
-    # the arguments 'input_file' and 'output_files' are not used here
-    # input and output files are generated from 'config/fastq_files.tsv'
-
-    hisat2_threads = PARAMS["hisat2"]["threads"]
-    hisat2_genome = PARAMS["hisat2"]["genome"]
-    hisat2_options = PARAMS["hisat2"]["options"]
-
-    fastqs1 = [file for file in input_files if bool(re.search("_R1.fastq.gz", file))]
-    fastqs2 = [file for file in input_files if bool(re.search("_R2.fastq.gz", file))]
-
-    fastqs1 = ",".join(fastqs1)
-    fastqs2 = ",".join(fastqs2)
-
+    # Fetch relevant pipeline parameters.
+    hisat2_threads = PARAMS['hisat2']['threads']
+    hisat2_genome = PARAMS['hisat2']['genome']
+    hisat2_options = PARAMS['hisat2']['options']
+    # Separate the input file names.
+    fastq1 = input_files[0]
+    fastq2 = input_files[1]
+    # Prepare a command from the input and output file names,
+    # as well as the pipeline parameters.
     statement = """
         hisat2
             --threads %(hisat2_threads)s
             -x %(hisat2_genome)s
-            -1 %(fastqs1)s
-            -2 %(fastqs2)s
+            -1 %(fastq1)s
+            -2 %(fastq2)s
             %(hisat2_options)s
             --summary-file %(output_file)s.log
         | samtools sort
@@ -101,12 +100,13 @@ def run_hisat2_on_fastq(input_files, output_file):
         && samtools index
             %(output_file)s
         """ % locals()
-
+    # Run the command in the Conda environment,
+    # using the appopriate number of threads.
     P.run(
         statement,
-        job_condaenv="pipeline_rnaseq_hisat2",
-        job_threads=PARAMS["hisat2_threads"],
-        job_memory=PARAMS["hisat2_memory_per_thread"]
+        job_condaenv='pipeline_rnaseq_hisat2',
+        job_threads=PARAMS['hisat2_threads'],
+        job_memory=PARAMS['hisat2_memory_per_thread']
     )
 
 
@@ -114,19 +114,19 @@ def run_hisat2_on_fastq(input_files, output_file):
 @transform(
     run_hisat2_on_fastq,
     regex(r"results/hisat2/(.*).bam"),
-    r"results/qc/samtools/idxstats/\1",
+    r"results/qc/samtools/idxstats/\1"
 )
-def run_idxstats_on_bam(infile, outfile):
+def run_idxstats_on_bam(input_file, output_file):
     """
     Run `samtools idxstats` on the BAM files produced by HISAT2.
     """
-
+    # Prepare a command from the input and output file names.
     statement = """
         samtools idxstats
-        %(infile)s
-        > %(outfile)s
+        %(input_file)s
+        > %(output_file)s
     """
-
+    # Run the command in the Conda environment.
     P.run(statement, job_condaenv="pipeline_rnaseq_hisat2")
 
 
@@ -134,19 +134,19 @@ def run_idxstats_on_bam(infile, outfile):
 @transform(
     run_hisat2_on_fastq,
     regex(r"results/hisat2/(.*).bam"),
-    r"results/qc/samtools/flagstat/\1",
+    r"results/qc/samtools/flagstat/\1"
 )
-def run_flagstat_on_bam(infile, outfile):
+def run_flagstat_on_bam(input_file, output_file):
     """
     Run `samtools flagstat` on the BAM files produced by HISAT2.
     """
-
+    # Prepare a command from the input and output file names.
     statement = """
         samtools flagstat
-        %(infile)s
-        > %(outfile)s
+        %(input_file)s
+        > %(output_file)s
     """
-
+    # Run the command in the Conda environment.
     P.run(statement, job_condaenv="pipeline_rnaseq_hisat2")
 
 
@@ -154,21 +154,25 @@ def run_flagstat_on_bam(infile, outfile):
 @transform(
     run_hisat2_on_fastq,
     regex(r"results/hisat2/(.*).bam"),
-    r"results/qc/picard/CollectAlignmentSummaryMetrics/\1",
+    r"results/qc/picard/CollectAlignmentSummaryMetrics/\1"
 )
-def run_picard_alignment_metrics_on_bam(infile, outfile):
+def run_picard_alignment_metrics_on_bam(input_file, output_file):
     """
-    Run `picard CollectAlignmentSummaryMetrics` on the BAM files produced by HISAT2.
+    Run `picard CollectAlignmentSummaryMetrics` on the BAM files produced by
+    HISAT2.
     """
-
+    # Fetch relevant pipeline parameters.
+    picard_genome = PARAMS['picard']['genome']
+    # Prepare a command from the input and output file names,
+    # as well as the pipeline parameters.
     statement = """
         picard CollectAlignmentSummaryMetrics
-            -I %(infile)s
-            -O %(outfile)s
+            -I %(input_file)s
+            -O %(output_file)s
             -R %(picard_genome)s
-            2> %(outfile)s.log
+            2> %(output_file)s.log
         """
-
+    # Run the command in the Conda environment.
     P.run(statement, job_condaenv="pipeline_rnaseq_hisat2")
 
 
@@ -176,49 +180,61 @@ def run_picard_alignment_metrics_on_bam(infile, outfile):
 @transform(
     run_hisat2_on_fastq,
     regex(r"results/hisat2/(.*).bam"),
-    r"results/qc/picard/CollectInsertSizeMetrics/\1",
+    r"results/qc/picard/CollectInsertSizeMetrics/\1"
 )
-def run_picard_insert_size_on_bam(infile, outfile):
+def run_picard_insert_size_on_bam(input_file, output_file):
     """
     Run `picard CollectInsertSizeMetrics` on the BAM files produced by HISAT2.
     """
-
+    # Fetch relevant pipeline parameters.
+    picard_genome = PARAMS['picard']['genome']
+    # Prepare a command from the input and output file names,
+    # as well as the pipeline parameters.
     statement = """
         picard CollectInsertSizeMetrics
-        -I %(infile)s
-        -O %(outfile)s
+        -I %(input_file)s
+        -O %(output_file)s
         -R %(picard_genome)s
-        -H %(outfile)s.pdf
-        2> %(outfile)s.log
+        -H %(output_file)s.pdf
+        2> %(output_file)s.log
     """
-
+    # Run the command in the Conda environment.
     P.run(statement, job_condaenv="pipeline_rnaseq_hisat2")
 
 
 @follows(mkdir("results/featureCounts"))
-@merge(run_hisat2_on_fastq, "results/featureCounts/counts")
-def run_featurecounts_on_bam(infiles, outfile):
+@merge(
+    run_hisat2_on_fastq,
+    "results/featureCounts/counts"
+)
+def run_featurecounts_on_bam(input_files, output_file):
     """
     Run `featureCounts`
     """
-
-    infile_list = " ".join(infiles)
-
+    # Fetch relevant pipeline parameters.
+    featurecounts_gtf = PARAMS['featurecounts']['gtf']
+    featurecounts_threads = PARAMS['featurecounts']['threads']
+    featurecounts_options = PARAMS['featurecounts']['options']
+    # Combine the list of input file names.
+    input_file_list = " ".join(input_files)
+    # Prepare a command from the input and output file names,
+    # as well as the pipeline parameters.
     statement = """
         featureCounts
-            -a %(feature_counts_gtf)s
-            -o %(outfile)s
-            -T %(feature_counts_threads)s
-            %(feature_counts_options)s
-            %(infile_list)s
-            > %(outfile)s.log
+            -a %(featurecounts_gtf)s
+            -o %(output_file)s
+            -T %(featurecounts_threads)s
+            %(featurecounts_options)s
+            %(input_file_list)s
+            > %(output_file)s.log
             2>&1
         """
-
+    # Run the command in the Conda environment,
+    # using the appopriate number of threads.
     P.run(
         statement,
         job_condaenv="pipeline_rnaseq_hisat2",
-        job_threads=PARAMS["feature_counts"]["threads"],
+        job_threads=PARAMS["featurecounts"]["threads"],
     )
 
 
@@ -232,11 +248,11 @@ def run_featurecounts_on_bam(infiles, outfile):
     ],
     "results/reports/multiqc/bam.html",
 )
-def run_multiqc_for_bam(infiles, outfile):
+def run_multiqc_for_bam(input_files, output_file):
     """
     Run MultiQC on the files of quality metrics computed for the BAM files.
     """
-
+    # Prepare a command from the input folder and output file names.
     statement = """
         multiqc
             -n bam.html
@@ -247,15 +263,21 @@ def run_multiqc_for_bam(infiles, outfile):
             results/qc/picard/CollectAlignmentSummaryMetrics
             results/qc/picard/CollectInsertSizeMetrics
             results/featureCounts
-            > %(outfile)s.log
+            > %(output_file)s.log
             2>&1
     """
-
+    # Run the command in the Conda environment.
     P.run(statement, job_condaenv="pipeline_rnaseq_hisat2")
 
 
-@follows(run_multiqc_for_fastq, run_multiqc_for_bam)
+@follows(
+    run_multiqc_for_fastq,
+    run_multiqc_for_bam
+)
 def full():
+    """
+    Run all the pipeline.
+    """
     pass
 
 
