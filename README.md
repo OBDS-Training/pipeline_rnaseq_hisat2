@@ -78,7 +78,7 @@ with maximal verbosity (`-v 5`).
 
 ## Resources
 
-- [Conda workshops][link-conda-workshops]
+- Learn more about Conda and Mamba in our [Conda workshops][link-conda-workshops]
 
 [link-cgatcore]: https://github.com/cgat-developers/cgat-core
 [link-hisat2]: http://www.ccb.jhu.edu/software/hisat/index.shtml
