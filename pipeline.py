@@ -8,12 +8,13 @@ import os
 import re
 from cgatcore import pipeline as P
 
+
 #################
 # Configuration #
 #################
 
 
-# Load parameters from config file, located in `./config/pipeline.yml`.
+# Load parameters from the configuration file 'pipeline.yml'
 PARAMS = P.get_parameters(
     "%s/pipeline.yml" % os.path.dirname(os.path.realpath(__file__))
 )
@@ -48,7 +49,10 @@ def run_fastqc_on_fastq(infile, outfile):
 
 
 @follows(mkdir("results/reports/multiqc"))
-@merge(run_fastqc_on_fastq, "results/reports/multiqc/fastq.html")
+@merge(
+    run_fastqc_on_fastq,
+    "results/reports/multiqc/fastq.html"
+)
 def run_multiqc_for_fastq(infiles, outfile):
     """
     Run `multiqc` on the files of quality metrics computed for the FASTQ files.
@@ -114,7 +118,7 @@ def run_hisat2_on_fastq(input_files, output_file):
 @transform(
     run_hisat2_on_fastq,
     regex(r"results/hisat2/(.*).bam"),
-    r"results/qc/samtools/idxstats/\1",
+    r"results/qc/samtools/idxstats/\1"
 )
 def run_idxstats_on_bam(infile, outfile):
     """
@@ -134,7 +138,7 @@ def run_idxstats_on_bam(infile, outfile):
 @transform(
     run_hisat2_on_fastq,
     regex(r"results/hisat2/(.*).bam"),
-    r"results/qc/samtools/flagstat/\1",
+    r"results/qc/samtools/flagstat/\1"
 )
 def run_flagstat_on_bam(infile, outfile):
     """
@@ -154,11 +158,12 @@ def run_flagstat_on_bam(infile, outfile):
 @transform(
     run_hisat2_on_fastq,
     regex(r"results/hisat2/(.*).bam"),
-    r"results/qc/picard/CollectAlignmentSummaryMetrics/\1",
+    r"results/qc/picard/CollectAlignmentSummaryMetrics/\1"
 )
 def run_picard_alignment_metrics_on_bam(infile, outfile):
     """
-    Run `picard CollectAlignmentSummaryMetrics` on the BAM files produced by HISAT2.
+    Run `picard CollectAlignmentSummaryMetrics` on the BAM files produced by
+    HISAT2.
     """
 
     statement = """
@@ -176,7 +181,7 @@ def run_picard_alignment_metrics_on_bam(infile, outfile):
 @transform(
     run_hisat2_on_fastq,
     regex(r"results/hisat2/(.*).bam"),
-    r"results/qc/picard/CollectInsertSizeMetrics/\1",
+    r"results/qc/picard/CollectInsertSizeMetrics/\1"
 )
 def run_picard_insert_size_on_bam(infile, outfile):
     """
@@ -196,7 +201,10 @@ def run_picard_insert_size_on_bam(infile, outfile):
 
 
 @follows(mkdir("results/featureCounts"))
-@merge(run_hisat2_on_fastq, "results/featureCounts/counts")
+@merge(
+    run_hisat2_on_fastq,
+    "results/featureCounts/counts"
+)
 def run_featurecounts_on_bam(infiles, outfile):
     """
     Run `featureCounts`
@@ -254,7 +262,10 @@ def run_multiqc_for_bam(infiles, outfile):
     P.run(statement, job_condaenv="pipeline_rnaseq_hisat2")
 
 
-@follows(run_multiqc_for_fastq, run_multiqc_for_bam)
+@follows(
+    run_multiqc_for_fastq,
+    run_multiqc_for_bam
+)
 def full():
     pass
 
