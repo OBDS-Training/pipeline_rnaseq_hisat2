@@ -76,5 +76,10 @@ python pipeline.py make full -v 5
 The example above request the execution of entire pipeline (`make full`),
 with maximal verbosity (`-v 5`).
 
+## Resources
+
+- [Conda workshops][link-conda-workshops]
+
 [link-cgatcore]: https://github.com/cgat-developers/cgat-core
 [link-hisat2]: http://www.ccb.jhu.edu/software/hisat/index.shtml
+[link-conda-workshops]: https://github.com/OBDS-Training/OBDS_Open_Workshop_Materials/tree/master/1_Conda
